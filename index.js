@@ -1,58 +1,70 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const itemInput = document.getElementById('item');
-  const addItemButton = document.getElementById('addItem');
-  const clearListButton = document.getElementById('clearList');
-  const list = document.getElementById('list');
+// Get DOM elements
+const itemInput = document.getElementById('itemInput');
+const addItemBtn = document.getElementById('addItemBtn');
+const clearListBtn = document.getElementById('clearListBtn');
+const shoppingList = document.getElementById('shoppingList');
 
-  // Initialize shopping list array
-  let shoppingList = [];
+// Initialize shopping list array (simulating local storage)
+let items = [];
 
-  // Function to render shopping list
-  function renderShoppingList() {
-      // Clear existing list items
-      list.innerHTML = '';
+// Function to render shopping list
+function renderList() {
+    // Clear existing list items
+    shoppingList.innerHTML = '';
 
-      // Render each item in the shoppingList array
-      shoppingList.forEach((item, index) => {
-          const li = document.createElement('li');
-          li.textContent = item.name;
+    // Loop through items array and create list items
+    items.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.textContent = item.name;
+        if (item.purchased) {
+            li.classList.add('purchased');
+        }
+        
+        // Mark item as purchased on click
+        li.addEventListener('click', () => {
+            item.purchased = !item.purchased;
+            renderList(); // Update UI
+            saveToLocalStorage(); // Save to local storage
+        });
 
-          // Add a class if item is completed
-          if (item.completed) {
-              li.classList.add('completed');
-          }
+        shoppingList.appendChild(li);
+    });
+}
 
-          // Add click event listener to mark item as purchased
-          li.addEventListener('click', () => {
-              toggleCompleted(index);
-          });
+// Function to add item to shopping list
+function addItem() {
+    const itemName = itemInput.value.trim();
+    if (itemName !== '') {
+        items.push({ name: itemName, purchased: false });
+        renderList(); // Update UI
+        saveToLocalStorage(); // Save to local storage
+        itemInput.value = ''; // Clear input field
+    }
+}
 
-          list.appendChild(li);
-      });
-  }
+// Function to clear the shopping list
+function clearList() {
+    items = [];
+    renderList(); // Update UI
+    saveToLocalStorage(); // Save to local storage
+}
 
-  // Function to toggle completed status of an item
-  function toggleCompleted(index) {
-      shoppingList[index].completed = !shoppingList[index].completed;
-      renderShoppingList();
-  }
+// Event listeners
+addItemBtn.addEventListener('click', addItem);
+clearListBtn.addEventListener('click', clearList);
 
-  // Event listener for Add button
-  addItemButton.addEventListener('click', () => {
-      const itemName = itemInput.value.trim();
-      if (itemName !== '') {
-          shoppingList.push({ name: itemName, completed: false });
-          renderShoppingList();
-          itemInput.value = '';
-      }
-  });
+// Local storage functions
+function saveToLocalStorage() {
+    localStorage.setItem('shoppingList', JSON.stringify(items));
+}
 
-  // Event listener for Clear List button
-  clearListButton.addEventListener('click', () => {
-      shoppingList = [];
-      renderShoppingList();
-  });
+function loadFromLocalStorage() {
+    const storedItems = localStorage.getItem('shoppingList');
+    if (storedItems) {
+        items = JSON.parse(storedItems);
+        renderList(); // Initial render from local storage
+    }
+}
 
-  // Initial render of shopping list
-  renderShoppingList();
-});
+// Load from local storage on page load
+loadFromLocalStorage();
